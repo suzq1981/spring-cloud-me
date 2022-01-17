@@ -1,0 +1,73 @@
+server:
+  port: 1000
+
+debug: false
+
+hystrix:
+  command:
+    fallbackcmd:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 6000
+
+spring:
+  application:
+    name: badou-cloud-gateway
+  cloud:
+    gateway:
+#      globalcors:
+#        cors-configurations:
+#          #允许跨域的请求路径，下面表示所有
+#          '[/**]':
+#            #允许的来源
+#            allowedOrigins: "*"
+#            #允许的方法
+#            allowedMethods:
+#              - GET
+#              - POST
+#              - PUT
+#              - DELETE
+#            #是否允许携带Cookie
+#            allowCredentials: true
+#            allowedHeaders: "ALL"
+#            exposedHeaders: "ALL"
+#            #预检命令缓存时长，单位秒
+#            maxAge: 18000
+
+      discovery:
+        locator:
+          enabled: false
+      default-filters:
+        - name: Hystrix
+          args:
+            name: fallbackcmd
+            fallbackUri: forward:/fallbackHystrix
+#        - name: CircuitBreaker
+#          args:
+#            name: myCircuitBreaker
+#            fallbackUri: forward:/fallbackCircuitBreaker
+        - AddResponseHeader=Badou-Cloud, Godson
+        - name: RequestSize
+          args:
+            maxSize: 10000000
+      routes:
+        - id: ogs-service
+          uri: lb://badou-cloud-order
+          predicates:
+            - Path=/ogs/**
+          filters:
+            - StripPrefix=1
+        - id: ums-service
+          uri: lb://badou-cloud-ums
+          predicates:
+            - Path=/ums/**
+          filters:
+            - StripPrefix=1
+
+    nacos:
+      config:
+        server-addr: 192.168.0.201:8848,192.168.0.202:8848
+        file-extension: yaml
+      discovery:
+        server-addr: 192.168.0.201:8848,192.168.0.202:8848

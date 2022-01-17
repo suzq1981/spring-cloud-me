@@ -1,0 +1,42 @@
+<?xml version="1.0"  encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC  "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://www.mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.badou.cloud.order.dao.OrderMapper">
+
+    <resultMap type="com.badou.cloud.order.entity.Order" id="orderResultMap">
+        <id property="orderId" column="order_id"/>
+        <result property="orderSeq" column="order_seq"/>
+        <result property="date" column="date"/>
+        <result property="state" column="state"/>
+        <result property="userId" column="user_id"/>
+    </resultMap>
+
+    <select id="findOrderById" resultMap="orderResultMap">
+		select order_id,order_seq,date,state,user_id from tbl_order where order_id=#{value}
+	</select>
+
+    <update id="cancelOrder">
+        update tbl_order set state=#{param2} where order_id=#{param1}
+    </update>
+
+    <update id="updateOrder">
+        update tbl_order set state=#{state},date=#{date} where order_id=#{orderId}
+    </update>
+
+    <insert id="createOrder">
+        <selectKey resultType="java.lang.Integer" order="AFTER" keyProperty="orderId" keyColumn="order_id">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into tbl_order(order_seq,date,state,user_id) values(#{orderSeq},#{date},#{state},#{userId})
+    </insert>
+
+    <select id="findOrderByCondition" resultMap="orderResultMap">
+        select order_id,order_seq,date,state,user_id from tbl_order
+            where user_id=#{userId}
+        <if test="state != 0">
+            and state=#{state}
+        </if>
+    </select>
+
+</mapper>
